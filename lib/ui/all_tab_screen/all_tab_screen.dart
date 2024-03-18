@@ -1,21 +1,20 @@
 import 'dart:ui';
 
-import 'package:bloc_call_api/theme/theme_color.dart';
+import 'package:bloc_call_api/theme/color_palette.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'bloc/ability_bloc.dart';
 
-import '../bloc/ability_bloc.dart';
-
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class AllTabScreen extends StatefulWidget {
+  const AllTabScreen({Key? key}) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeState();
+  State<AllTabScreen> createState() => _AllTabScreenState();
 }
 
-class _HomeState extends State<Home> {
+class _AllTabScreenState extends State<AllTabScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +67,7 @@ class _HomeState extends State<Home> {
                 child: Text(
                   'Hãy quay lại vào ngày mai !',
                   style: TextStyle(
-                    color: Colors.grey
+                      color: Colors.grey
                   ),
                 ),
               );
@@ -77,7 +76,7 @@ class _HomeState extends State<Home> {
             }
           },
         ),
-      ),
+      )
     );
   }
 

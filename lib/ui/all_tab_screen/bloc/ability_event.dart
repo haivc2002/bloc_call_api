@@ -10,13 +10,3 @@ abstract class DataEvent extends Equatable {
 class FetchData extends DataEvent {}
 
 class LoadMoreData extends DataEvent {}
-
-abstract class TabEvent {}
-
-class UpdateTab extends TabEvent {
-  final int index;
-
-  UpdateTab(this.index);
-}
-
-

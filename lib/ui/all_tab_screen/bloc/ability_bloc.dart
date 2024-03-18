@@ -3,7 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import '../model/model.dart';
+
+import '../../../model/model.dart';
 
 part 'ability_event.dart';
 part 'ability_state.dart';
@@ -47,7 +48,7 @@ class DataBloc extends Bloc<DataEvent, DataState> {
             options: options,
           );
           if (response.statusCode == 200) {
-            // final List<dynamic> jsonDatas = response.data;
+            // final List<dynamic> jsonDatas = response.ui;
             allDatas.addAll((response.data as List).map((item) => loadapi.fromJson(item)).toList());
             page++;
             hasMoreData = (response.data as List).isNotEmpty;
@@ -121,13 +122,5 @@ class DataBloc extends Bloc<DataEvent, DataState> {
   }
 }
 
-class TabBloc extends Bloc<TabEvent, TabState> {
-  TabBloc() : super(TabState(0));
 
-  Stream<TabState> mapEventToState(TabEvent event) async* {
-    if (event is UpdateTab) {
-      yield TabState(event.index);
-    }
-  }
-}
 

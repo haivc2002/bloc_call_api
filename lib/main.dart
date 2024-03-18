@@ -1,12 +1,20 @@
-import 'package:bloc_call_api/data/home.dart';
-import 'package:bloc_call_api/data/component.dart';
-import 'package:bloc_call_api/theme/theme_color.dart';
+import 'package:bloc_call_api/theme/color_palette.dart';
+import 'package:bloc_call_api/ui/layout_screen/bloc/layout_screen_bloc.dart';
+import 'package:bloc_call_api/ui/layout_screen/layout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => ContainerBloc())
+      ],
+      child: const MyApp()
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -35,7 +43,7 @@ class MyApp extends StatelessWidget {
             home: child,
           );
         },
-        child: const Component(),
+        child: const LayoutScreen(),
       ),
     );
   }

@@ -32,9 +32,3 @@ class DataError extends DataState {
   @override
   List<Object?> get props => [errorMessage];
 }
-
-class TabState {
-  final int currentIndex;
-
-  TabState(this.currentIndex);
-}
