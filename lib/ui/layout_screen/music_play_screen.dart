@@ -23,62 +23,52 @@ class MusicPlayScreen extends StatefulWidget {
 
 class _MusicPlayScreenState extends State<MusicPlayScreen> {
 
-  final player = AudioPlayer();
-  bool isPlaying = false;
-  bool isDurationLoaded = false;
-  double _currentSliderValue = 0;
-  Duration totalDuration = Duration.zero;
-  Duration currentPosition = Duration.zero;
-  Timer? timer;
 
+  final audioPlayer = AudioPlayer();
+  bool isPlaying = false;
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
+
+  @override
   void initState() {
     super.initState();
-    player.onDurationChanged.listen((Duration duration) {
+    audioPlayer.onPlayerStateChanged.listen((state) {
       setState(() {
-        totalDuration = duration;
-        isDurationLoaded = true;
+        isPlaying = state == PlayerState.playing;
       });
     });
 
-    player.onPlayerStateChanged.listen((PlayerState state) {
-      if (state == PlayerState.playing) {
-        setState(() {
-          isPlaying = true;
-        });
-        startTimer(); // Bắt đầu hàm định thời khi bắt đầu phát nhạc
-      } else {
-        setState(() {
-          isPlaying = false;
-        });
-        stopTimer(); // Dừng hàm định thời khi dừng phát nhạc
-      }
+    audioPlayer.onDurationChanged.listen((newDuration) {
+     setState(() {
+       duration = newDuration;
+     });
+    });
+
+    audioPlayer.onPositionChanged.listen((newPosition) {
+      setState(() {
+        duration = newPosition;
+      });
     });
   }
 
-  void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
-      if (totalDuration.inSeconds > 0) {
-        // Tránh chia cho 0 bằng cách kiểm tra nếu totalDuration > 0
-        setState(() {
-          currentPosition += Duration(seconds: 1);
-          _currentSliderValue = currentPosition.inSeconds.toDouble();
-        });
-      }
-    });
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
   }
 
-  void stopTimer() {
-    timer?.cancel();
-  }
+  String formatTime(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
 
-  Future<void> playAudioFromUrl(String url) async {
-    await player.play(UrlSource(url));
+    return [
+      if (duration.inHours > 0) hours,
+      minutes,
+      seconds,
+    ].join(':');
   }
-
-  Future<void> stopAudio() async {
-    await player.stop();
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -187,39 +177,20 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
       height: 180.h,
       child: Column(
         children: [
-          // Slider(
-          //   value: position.inSeconds.toDouble(),
-          //   min: 0,
-          //   max: duration.inSeconds.toDouble(),
-          //   inactiveColor: const Color(0xFFDFDFDF),
-          //   activeColor: ColorPalette.pinkColor,
-          //   onChanged: (value) {
-          //     // setState(() {
-          //     //   _currentSliderValue = value;
-          //     // });
-          //     final position = Duration(seconds: value.toInt());
-          //     player.seek(position);
-          //     player.resume();
-          //   },
-          // ),
 
           Slider(
-            value: _currentSliderValue,
             min: 0,
-            max: totalDuration.inSeconds.toDouble(),
-            inactiveColor: const Color(0xFFDFDFDF),
-            activeColor: ColorPalette.pinkColor,
-            onChanged: (value) {
-              setState(() {
-                _currentSliderValue = value;
-              });
+            max: duration.inSeconds.toDouble(),
+            value: position.inSeconds.toDouble(),
+            onChanged: (value) async {
               final position = Duration(seconds: value.toInt());
-              player.seek(position);
-            },
+              await audioPlayer.seek(position);
+              await audioPlayer.resume();
+            }
           ),
 
           Text(
-            '${currentPosition.inMinutes.remainder(60).toString().padLeft(2, '0')}:${currentPosition.inSeconds.remainder(60).toString().padLeft(2, '0')}',
+            formatTime(position),
           ),
 
           Row(
@@ -230,9 +201,15 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
               BlocBuilder<ContainerBloc, ContainerState>(
                   builder: (BuildContext context, ContainerState state) {
                     return GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         context.read<ContainerBloc>().add(ComboES());
-                        state.isCombo ? player.stop() : playAudioFromUrl('https://stream.funradio.sk:8000/fun128.mp3');
+                        // state.isCombo ? player.stop() : playAudioFromUrl('https://stream.funradio.sk:8000/fun128.mp3');
+                        if(isPlaying) {
+                          await audioPlayer.pause();
+                        } else {
+                          String url = 'https://stream.funradio.sk:8000/fun128.mp3';
+                          await audioPlayer.play(UrlSource(url));
+                        }
                       },
                       child: Container(
                         height: MediaQuery.of(context).size.width*0.15,
