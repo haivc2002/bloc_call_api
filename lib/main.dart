@@ -8,12 +8,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
   runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => ContainerBloc())
-      ],
-      child: const MyApp()
-    )
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => ContainerBloc()),
+          BlocProvider(create: (context) => MusicBloc()),
+        ],
+        child: const MyApp(),
+      )
   );
 }
 

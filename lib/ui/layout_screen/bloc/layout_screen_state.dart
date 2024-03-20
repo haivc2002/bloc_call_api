@@ -27,3 +27,37 @@ class NextScreenPageState {
     );
   }
 }
+
+class MusicState {
+  final String selectedUri;
+  final AudioPlayer audioPlayer;
+  final bool isPlaying;
+
+  MusicState({
+    required this.audioPlayer,
+    required this.isPlaying,
+    required this.selectedUri,
+  });
+
+  MusicState copyWith({
+    AudioPlayer? audioPlayer,
+    bool? isPlaying,
+    String? selectedUri,
+  }) {
+    return MusicState(
+      selectedUri: selectedUri ?? this.selectedUri,
+      audioPlayer: audioPlayer ?? this.audioPlayer,
+      isPlaying: isPlaying ?? this.isPlaying,
+    );
+  }
+}
+
+abstract class ExploreTabState {}
+
+class ExploreTabInitialState extends ExploreTabState {}
+
+class SelectedUriLoadedSate extends ExploreTabState {
+  final String selectedUri;
+
+  SelectedUriLoadedSate(this.selectedUri);
+}

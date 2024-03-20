@@ -13,3 +13,15 @@ abstract class NextScreenPageEvent {}
 class NextScreenTabBarEvent extends NextScreenPageEvent {}
 
 class TabbarChangeColorEvent extends NextScreenPageEvent {}
+
+abstract class MusicEvent {}
+
+class TogglePlayPauseEvent extends MusicEvent {}
+
+abstract class ExploreTabEvent {}
+
+class ListItemTappedEvent extends ExploreTabEvent {
+  final String uri;
+
+  ListItemTappedEvent(this.uri);
+}

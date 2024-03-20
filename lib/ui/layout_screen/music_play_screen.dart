@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +10,12 @@ import 'bloc/layout_screen_bloc.dart';
 
 class MusicPlayScreen extends StatefulWidget {
 
-  final BuildContext context;
-  final ContainerState state;
+  // final BuildContext context;
+  // final ContainerState state;
+  final String ? uri;
 
-  const MusicPlayScreen({Key? key, required this.context, required this.state}) : super(key: key);
+
+  const MusicPlayScreen({Key? key, required this.uri}) : super(key: key);
 
   @override
   State<MusicPlayScreen> createState() => _MusicPlayScreenState();
@@ -24,51 +24,6 @@ class MusicPlayScreen extends StatefulWidget {
 class _MusicPlayScreenState extends State<MusicPlayScreen> {
 
 
-  final audioPlayer = AudioPlayer();
-  bool isPlaying = false;
-  Duration duration = Duration.zero;
-  Duration position = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    audioPlayer.onPlayerStateChanged.listen((state) {
-      setState(() {
-        isPlaying = state == PlayerState.playing;
-      });
-    });
-
-    audioPlayer.onDurationChanged.listen((newDuration) {
-     setState(() {
-       duration = newDuration;
-     });
-    });
-
-    audioPlayer.onPositionChanged.listen((newPosition) {
-      setState(() {
-        duration = newPosition;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    audioPlayer.dispose();
-    super.dispose();
-  }
-
-  String formatTime(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-
-    return [
-      if (duration.inHours > 0) hours,
-      minutes,
-      seconds,
-    ].join(':');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +39,7 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
                 width: MediaQuery.of(context).size.width,
                 decoration: const BoxDecoration(
                     image: DecorationImage(
-                        image: AssetImage('lib/theme/image/Group 18.png'),
+                        image: AssetImage('lib/theme/image/Group18.png'),
                         fit: BoxFit.cover
                     )
                 ),
@@ -135,31 +90,33 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
             );
           } else if (state is DataLoaded) {
             return Expanded(child: Swiper(
-              viewportFraction: 0.5,
+              viewportFraction: 0.6,
               itemCount: state.datas.length,
               itemBuilder: (context, index) {
                 final ui = state.datas[index];
-                return Container(
-                  color: Colors.transparent,
-                  margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(child: Image.network('${ui.favicon}'))
-                    ],
+                return Center(
+                  child: Container(
+                    height: 180.w,
+                    width: 180.w,
+                    child: Center(
+                      child: Container(
+                        height: 160.w,
+                        width: 160.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            image: NetworkImage('${ui.favicon}'),
+                            fit: BoxFit.cover
+                          )
+                        ),
+                      )
+                    ),
                   ),
                 );
               },
             ));
           } else if (state is DataError) {
-            return const Center(
-              child: Text(
-                'Hãy quay lại vào ngày mai !',
-                style: TextStyle(
-                    color: Colors.grey
-                ),
-              ),
-            );
+            return const Spacer();
           } else {
             return Container();
           }
@@ -171,61 +128,57 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
   }
 
 
+  double _currentSliderValue = 0;
+
 
   Widget funstionbutton() {
     return SizedBox(
       height: 180.h,
       child: Column(
         children: [
-
           Slider(
+            value: _currentSliderValue,
             min: 0,
-            max: duration.inSeconds.toDouble(),
-            value: position.inSeconds.toDouble(),
-            onChanged: (value) async {
-              final position = Duration(seconds: value.toInt());
-              await audioPlayer.seek(position);
-              await audioPlayer.resume();
-            }
+            max: 100,
+            onChanged: (double value) {
+              setState(() {
+                _currentSliderValue = value;
+              });
+            },
           ),
 
-          Text(
-            formatTime(position),
-          ),
+          // BlocBuilder<MusicBloc, MusicState>(
+          //   builder: (context, state) {
+          //     return Text(
+          //       '${state.position.inMinutes.remainder(60).toString().padLeft(2, '0')}:${(state.position.inSeconds.remainder(60)).toString().padLeft(2, '0')}',
+          //       style: TextStyle(fontSize: 16.sp),
+          //     );
+          //   },
+          // ),
 
           Row(
             children: [
               const Spacer(),
               bntfunstion(Icons.skip_previous),
               const Spacer(),
-              BlocBuilder<ContainerBloc, ContainerState>(
-                  builder: (BuildContext context, ContainerState state) {
-                    return GestureDetector(
-                      onTap: () async {
-                        context.read<ContainerBloc>().add(ComboES());
-                        // state.isCombo ? player.stop() : playAudioFromUrl('https://stream.funradio.sk:8000/fun128.mp3');
-                        if(isPlaying) {
-                          await audioPlayer.pause();
-                        } else {
-                          String url = 'https://stream.funradio.sk:8000/fun128.mp3';
-                          await audioPlayer.play(UrlSource(url));
-                        }
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.width*0.15,
-                        width: MediaQuery.of(context).size.width*0.15,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          color: const Color(0xFFF4F4F4),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            state.isCombo ? Icons.pause : Icons.play_arrow,
-                            size: 40.sp, color: Colors.pink,),
-                        ),
-                      ),
-                    );
-                  }
+
+
+              //BlocBuilder<MusicBloc, MusicState>(
+              //   builder: (context, state) {
+              //     return IconButton(
+              //       icon: Icon(state.isPlaying ? Icons.play_arrow : Icons.pause),
+              //       onPressed: () {
+              //         context.read<MusicBloc>().add(TogglePlayPauseEvent());
+              //        },
+              //     );
+              //   },
+              // ),
+              ElevatedButton(
+                onPressed: () async {
+                  final player = AudioPlayer();
+                  await player.play(AssetSource('${widget.uri}'));
+                },
+                child: Text('sd')
               ),
               const Spacer(),
               bntfunstion(Icons.skip_next),

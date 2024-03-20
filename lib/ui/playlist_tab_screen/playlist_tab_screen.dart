@@ -16,9 +16,9 @@ class _PlaylistTabScreenState extends State<PlaylistTabScreen> {
       body: Column(
         children: [
           const SizedBox(height: 30,),
-          itemplaylist('lib/theme/image/Group 19.png', 'New Playlist'),
-          itemplaylist('lib/theme/image/Group 21.png', 'Recently Played'),
-          itemplaylist('lib/theme/image/Group 22.png', 'Favorites'),
+          itemplaylist('lib/theme/image/Group19.png', 'New Playlist'),
+          itemplaylist('lib/theme/image/Group21.png', 'Recently Played'),
+          itemplaylist('lib/theme/image/Group22.png', 'Favorites'),
         ],
       ),
     );

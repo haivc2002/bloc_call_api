@@ -47,11 +47,26 @@ class _AllTabScreenState extends State<AllTabScreen> {
                         return Container(
                           color: Colors.transparent,
                           margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Text('${data.name != "     " ? data.name : 'null'}', style: const TextStyle(fontWeight: FontWeight.w500),),
-                              Text('${data.country}', style: TextStyle(fontSize: 12.sp)),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width*0.7,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${data.name != "     " ? data.name : 'null'}', style: const TextStyle(fontWeight: FontWeight.w500),),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                                      child: Text('${data.country}', style: TextStyle(fontSize: 12.sp), overflow: TextOverflow.ellipsis,),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.more_vert, size: 18.sp,),
+                              )
                             ],
                           ),
                         );

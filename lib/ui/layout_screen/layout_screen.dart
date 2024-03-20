@@ -1,12 +1,15 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_call_api/theme/color_palette.dart';
+import 'package:bloc_call_api/ui/artist_tab_screen/artist_tab_screen.dart';
+import 'package:bloc_call_api/ui/explpore_tab_screen/explpore_tab_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../album_tab_screen.dart';
+import '../album_tab_screen/album_tab_screen.dart';
 import '../all_tab_screen/all_tab_screen.dart';
 import '../all_tab_screen/bloc/ability_bloc.dart';
-import '../playlist_tab_screen.dart';
+import '../playlist_tab_screen/playlist_tab_screen.dart';
 import 'bloc/layout_screen_bloc.dart';
 import 'music_play_screen.dart';
 
@@ -19,6 +22,8 @@ class LayoutScreen extends StatefulWidget {
 
 class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderStateMixin {
 
+
+  String selectedUri = '';
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -34,16 +39,22 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                     height: MediaQuery.of(context).size.height,
                     child: Column(
                       children: [
-                        Container(height: MediaQuery.of(context).size.height*0.15),
+                        Container(height: 120.h),
                         Expanded(child: PageView(
                           physics: const NeverScrollableScrollPhysics(),
                           controller: state.pageController,
-                          children: const [
-                            AllTabScreen(),
-                            AlbumTabScreen(),
-                            PlaylistTabScreen(),
-                            PlaylistTabScreen(),
-                            PlaylistTabScreen(),
+                          children: [
+                            const AllTabScreen(),
+                            const AlbumTabScreen(),
+                            const PlaylistTabScreen(),
+                            const ArtistTabScreen(),
+                            ExplporeTabScreen(
+                              onTap: (String uri) {
+                                setState(() {
+                                  selectedUri = uri;
+                                });
+                              },
+                            ),
                           ],
                         )),
                         Container(height: MediaQuery.of(context).size.height*0.18),
@@ -74,15 +85,22 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
   }
 
   Widget appbarcustom(BuildContext context, NextScreenPageState state) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height *0.15,
+    return Container(
+      height: 120.h,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFFA0A0A0).withOpacity(0.5)
+          )
+        )
+      ),
       child: Column(
         children: [
           search(),
           Expanded(
             child: Center(
               child: SizedBox(
-                height: 25.h,
+                height: 30.h,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
@@ -94,7 +112,6 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                     bntappbar('Explpore', 4, context, state),
                   ],
                 ),
-
               )
             )
           )
@@ -171,15 +188,15 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
         });
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: AnimatedContainer(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(10),
             color: colorbox,
           ),
           duration: const Duration(milliseconds: 150),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Center(child: Text(text, style: TextStyle(color: colortext),)),
           ),
         ),
@@ -217,10 +234,40 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
         ),
         child: Scaffold(
           backgroundColor: Colors.white,
-          body: !state.isExpanded ? formplaynow(context, state) : MusicPlayScreen(context: context, state: state),
+          body: !state.isExpanded ? formplaynow(context, state) : const MusicPlayScreen(uri: null),
         ),
       ),
     );
+  }
+
+
+  bool isPlaying = false;
+  final player = AudioPlayer();
+  Duration duration = const Duration();
+  Duration position = const Duration();
+
+  @override
+  void initState() {
+    super.initState();
+    player.onDurationChanged.listen((Duration d) {
+      setState(() {
+        duration = d;
+      });
+    });
+
+    player.onPositionChanged.listen((Duration p) {
+      setState(() {
+        position = p;
+      });
+    });
+  }
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+  String formatDuration(Duration d) {
+    return d.toString().split('.').first.padLeft(8, "0");
   }
 
   Widget formplaynow(BuildContext context, ContainerState state) {
@@ -229,31 +276,12 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BlocProvider(
-            create: (context) => DataBloc()..add(FetchData()),
-            child: BlocBuilder<DataBloc, DataState>(
-              builder: (context, state) {
-                if(state is DataInitial) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (state is DataLoaded) {
-                  return Container(
-                    height: MediaQuery.of(context).size.height*0.1.h,
-                    width: MediaQuery.of(context).size.height*0.1.h,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      image: DecorationImage(
-                        image: NetworkImage('${state.datas[0].favicon}'),
-                        fit: BoxFit.cover
-                      )
-                    ),
-                  );
-                } else {
-                  return Container();
-                }
-              },
-            )
+          Container(
+            height: MediaQuery.of(context).size.height*0.1.h,
+            width: MediaQuery.of(context).size.height*0.1.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+            ),
           ),
           Expanded(
             child: Column(
@@ -262,20 +290,20 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: GestureDetector(
-                    onTap: () {
-                      FocusScope.of(context).unfocus();
-                      context.read<ContainerBloc>().add(
-                          ExpandContainer());
-                    },
+                    // onTap: () {
+                    //   FocusScope.of(context).unfocus();
+                    //   context.read<ContainerBloc>().add(
+                    //       ExpandContainer());
+                    // },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Mustafa Jaan E Rehmat Pe', style: TextStyle(
-                            fontSize: 14.sp, fontWeight: FontWeight.w600),
+                        Text(selectedUri, style: TextStyle(
+                          fontSize: 14.sp, fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis,),
                         Text('Atif Aslam, Boss Menn',
-                            style: TextStyle(fontSize: 12.sp),
-                            overflow: TextOverflow.ellipsis),
+                          style: TextStyle(fontSize: 12.sp),
+                          overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
@@ -284,25 +312,31 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   height: 5.h,
                   child: Slider(
-                    value: _currentSliderValue,
-                    min: 0,
-                    max: 100,
-                    inactiveColor: const Color(0xFFDFDFDF),
-                    activeColor: ColorPalette.pinkColor,
-                    onChanged: (value) {
+                    value: position.inSeconds.toDouble(),
+                    min: 0.0,
+                    max: duration.inSeconds.toDouble(),
+                    onChanged: (double value) {
                       setState(() {
-                        _currentSliderValue = value;
+                        player.seek(Duration(seconds: value.toInt()));
                       });
                     },
                   ),
                 ),
+                Text('${formatDuration(position)} / ${formatDuration(duration)}'),
               ],
 
             ),
           ),
           GestureDetector(
-            onTap: () {
-              context.read<ContainerBloc>().add(ComboES());
+            onTap: () async {
+              setState(() {
+                isPlaying = !isPlaying;
+              });
+              if (isPlaying = player.state == PlayerState.playing) {
+                player.pause();
+              } else {
+                await player.play(AssetSource(selectedUri));
+              }
             },
             child: Container(
               height: MediaQuery.of(context).size.width*0.15,
@@ -313,7 +347,8 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
               ),
               child: Center(
                 child: Icon(
-                  state.isCombo ? Icons.pause : Icons.play_arrow,
+                  // state.isCombo ? Icons.pause : Icons.play_arrow,
+                  isPlaying ? Icons.play_arrow : Icons.pause,
                   size: 40.sp, color: Colors.pink,),
               ),
             ),
@@ -333,7 +368,7 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
               width: MediaQuery.of(context).size.width,
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('lib/theme/image/Group 18.png'),
+                  image: AssetImage('lib/theme/image/Group18.png'),
                   fit: BoxFit.cover
                 )
               ),
