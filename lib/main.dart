@@ -11,7 +11,7 @@ void main() {
       MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => ContainerBloc()),
-          BlocProvider(create: (context) => MusicBloc()),
+          BlocProvider(create: (context) => ExploreTabBloc()),
         ],
         child: const MyApp(),
       )

@@ -10,12 +10,11 @@ import 'bloc/layout_screen_bloc.dart';
 
 class MusicPlayScreen extends StatefulWidget {
 
-  // final BuildContext context;
-  // final ContainerState state;
-  final String ? uri;
+  final BuildContext context;
+  final ExploreTabState state;
 
 
-  const MusicPlayScreen({Key? key, required this.uri}) : super(key: key);
+  const MusicPlayScreen({Key? key, required this.context, required this.state, }) : super(key: key);
 
   @override
   State<MusicPlayScreen> createState() => _MusicPlayScreenState();
@@ -51,8 +50,8 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
                       const Spacer(),
                       GestureDetector(
                         onTap: () {
-                          context.read<ContainerBloc>().add(
-                              ShrinkContainer());
+                          context.read<ExploreTabBloc>().add(
+                              ClosePlayNowScreenEvent());
                         },
                         child: Row(
                           children: [
@@ -69,8 +68,9 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
                   ),
                 ),
               ),
-              slider(),
-              funstionbutton()
+              showdataAudioAssets(context, widget.state),
+              // slider(),
+              funstionbutton(context, widget.state)
         
             ],
           ),
@@ -127,11 +127,16 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
     );
   }
 
-
   double _currentSliderValue = 0;
 
+  Widget showdataAudioAssets(BuildContext context, ExploreTabState state) {
+    return Text(
+      state.selectedUri.isEmpty ? 'không có bài hát nào' : state.selectedUri,
+      style: const TextStyle(fontSize: 18.0),
+    );
+  }
 
-  Widget funstionbutton() {
+  Widget funstionbutton(BuildContext context,ExploreTabState state) {
     return SizedBox(
       height: 180.h,
       child: Column(
@@ -161,24 +166,12 @@ class _MusicPlayScreenState extends State<MusicPlayScreen> {
               const Spacer(),
               bntfunstion(Icons.skip_previous),
               const Spacer(),
-
-
-              //BlocBuilder<MusicBloc, MusicState>(
-              //   builder: (context, state) {
-              //     return IconButton(
-              //       icon: Icon(state.isPlaying ? Icons.play_arrow : Icons.pause),
-              //       onPressed: () {
-              //         context.read<MusicBloc>().add(TogglePlayPauseEvent());
-              //        },
-              //     );
-              //   },
-              // ),
-              ElevatedButton(
-                onPressed: () async {
-                  final player = AudioPlayer();
-                  await player.play(AssetSource('${widget.uri}'));
+              IconButton(
+                iconSize: 40,
+                onPressed: () {
+                  context.read<ExploreTabBloc>().add(ClickPlayPauseMusicEvent());
                 },
-                child: Text('sd')
+                icon: Icon(state.isPlaying ? Icons.pause : Icons.play_arrow)
               ),
               const Spacer(),
               bntfunstion(Icons.skip_next),

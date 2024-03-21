@@ -6,8 +6,6 @@ class ExpandContainer extends ContainerEvent {}
 
 class ShrinkContainer extends ContainerEvent {}
 
-class ComboES extends ContainerEvent {}
-
 abstract class NextScreenPageEvent {}
 
 class NextScreenTabBarEvent extends NextScreenPageEvent {}
@@ -18,10 +16,27 @@ abstract class MusicEvent {}
 
 class TogglePlayPauseEvent extends MusicEvent {}
 
+///////////////////////
+
 abstract class ExploreTabEvent {}
 
-class ListItemTappedEvent extends ExploreTabEvent {
-  final String uri;
+class ExploreTabSelectedEvent extends ExploreTabEvent {
+  final String selectedUri;
 
-  ListItemTappedEvent(this.uri);
+  ExploreTabSelectedEvent(this.selectedUri);
 }
+
+class ClickPlayPauseMusicEvent extends ExploreTabEvent {}
+
+class OpenPlayNowScreenEvent extends ExploreTabEvent{}
+
+class ClosePlayNowScreenEvent extends ExploreTabEvent{}
+
+class PositionEvent extends ExploreTabEvent {}
+
+class DurationEvent extends ExploreTabEvent {}
+
+
+
+
+

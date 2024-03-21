@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,9 +15,6 @@ class ContainerBloc extends Bloc<ContainerEvent, ContainerState> {
     });
     on<ShrinkContainer>((event, emit) {
       emit(state.copyWith(isExpanded: false,));
-    });
-    on<ComboES>((event, emit) {
-      emit(state.copyWith(isCombo: !state.isCombo));
     });
   }
 }
@@ -50,3 +48,45 @@ class MusicBloc extends Bloc<MusicEvent, MusicState> {
   }
 }
 
+class ExploreTabBloc extends Bloc<ExploreTabEvent, ExploreTabState> {
+  ExploreTabBloc()
+      : super(ExploreTabState(
+      selectedUri: '',
+      isPlaying: false,
+      player: AudioPlayer(),
+      isExpanded: false,
+      duration: Duration.zero,
+      position: Duration.zero)) {
+    on<ExploreTabSelectedEvent>((event, emit) {
+      emit(state.copyWith(selectedUri: event.selectedUri));
+    });
+
+    on<ClickPlayPauseMusicEvent>((event, emit) async {
+      if (state.isPlaying) {
+        await state.player.pause();
+      } else {
+        await state.player.play(AssetSource(state.selectedUri));
+      }
+      emit(state.copyWith(isPlaying: !state.isPlaying));
+    });
+
+    on<OpenPlayNowScreenEvent>((event, emit) {
+      emit(state.copyWith(isExpanded: true,));
+    });
+    on<ClosePlayNowScreenEvent>((event, emit) {
+      emit(state.copyWith(isExpanded: false,));
+    });
+
+    on<DurationEvent>((event, emit) {
+      state.player.onDurationChanged.listen((Duration d) {
+        emit(state.copyWith(duration: state.duration = d));
+      });
+    });
+
+    on<PositionEvent>((event, emit) {
+      state.player.onPositionChanged.listen((Duration p) {
+        emit(state.copyWith(position: state.position = p));
+      });
+    });
+  }
+}

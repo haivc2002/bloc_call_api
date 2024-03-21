@@ -8,7 +8,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../album_tab_screen/album_tab_screen.dart';
 import '../all_tab_screen/all_tab_screen.dart';
-import '../all_tab_screen/bloc/ability_bloc.dart';
 import '../playlist_tab_screen/playlist_tab_screen.dart';
 import 'bloc/layout_screen_bloc.dart';
 import 'music_play_screen.dart';
@@ -22,8 +21,6 @@ class LayoutScreen extends StatefulWidget {
 
 class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderStateMixin {
 
-
-  String selectedUri = '';
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -50,9 +47,7 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                             const ArtistTabScreen(),
                             ExplporeTabScreen(
                               onTap: (String uri) {
-                                setState(() {
-                                  selectedUri = uri;
-                                });
+                                context.read<ExploreTabBloc>().add(ExploreTabSelectedEvent(uri));
                               },
                             ),
                           ],
@@ -66,13 +61,10 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: BlocProvider(
-                      create: (context) => ContainerBloc(),
-                      child: BlocBuilder<ContainerBloc, ContainerState>(
-                        builder: (context, state) {
-                          return playnowbottom(context, state);
-                        },
-                      ),
+                    child: BlocBuilder<ExploreTabBloc, ExploreTabState>(
+                      builder: (context, state) {
+                        return playnowbottom(context, state);
+                      },
                     ),
                   ),
                 ],
@@ -204,9 +196,7 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
     );
   }
 
-  double _currentSliderValue = 0;
-
-  Widget playnowbottom(BuildContext context, ContainerState state) {
+  Widget playnowbottom(BuildContext context, ExploreTabState state) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       height: state.isExpanded ? MediaQuery.of(context).size.height : 150.w,
@@ -234,8 +224,8 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
         ),
         child: Scaffold(
           backgroundColor: Colors.white,
-          body: !state.isExpanded ? formplaynow(context, state) : const MusicPlayScreen(uri: null),
-        ),
+          body: !state.isExpanded ? formplaynow(context, state) : MusicPlayScreen(context: context, state: state),
+        )
       ),
     );
   }
@@ -245,6 +235,8 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
   final player = AudioPlayer();
   Duration duration = const Duration();
   Duration position = const Duration();
+
+  late final ExploreTabBloc exploreTabBloc;
 
   @override
   void initState() {
@@ -260,7 +252,11 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
         position = p;
       });
     });
+    context.read<ExploreTabBloc>().add(DurationEvent());
+    context.read<ExploreTabBloc>().add(PositionEvent());
   }
+
+
   @override
   void dispose() {
     player.dispose();
@@ -270,7 +266,7 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
     return d.toString().split('.').first.padLeft(8, "0");
   }
 
-  Widget formplaynow(BuildContext context, ContainerState state) {
+  Widget formplaynow(BuildContext context, ExploreTabState state) {
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Row(
@@ -290,53 +286,35 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: GestureDetector(
-                    // onTap: () {
-                    //   FocusScope.of(context).unfocus();
-                    //   context.read<ContainerBloc>().add(
-                    //       ExpandContainer());
-                    // },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(selectedUri, style: TextStyle(
-                          fontSize: 14.sp, fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,),
-                        Text('Atif Aslam, Boss Menn',
-                          style: TextStyle(fontSize: 12.sp),
-                          overflow: TextOverflow.ellipsis),
-                      ],
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      context.read<ExploreTabBloc>().add(OpenPlayNowScreenEvent());
+                    },
+                    child: Text(
+                      state.selectedUri.isEmpty ? 'không có bài hát nào' : state.selectedUri,
+                      style: const TextStyle(fontSize: 18.0),
                     ),
                   ),
                 ),
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  height: 5.h,
-                  child: Slider(
-                    value: position.inSeconds.toDouble(),
-                    min: 0.0,
-                    max: duration.inSeconds.toDouble(),
-                    onChanged: (double value) {
-                      setState(() {
-                        player.seek(Duration(seconds: value.toInt()));
-                      });
-                    },
-                  ),
-                ),
-                Text('${formatDuration(position)} / ${formatDuration(duration)}'),
+                // Container(
+                //   margin: const EdgeInsets.symmetric(vertical: 10),
+                //   height: 5.h,
+                //   child: Slider(
+                //     value: state.position.inSeconds.toDouble(),
+                //     min: 0.0,
+                //     max: state.duration.inSeconds.toDouble(),
+                //     onChanged: (double value) {
+                //       context.read<ExploreTabBloc>().add(SeekMusicEvent(Duration(seconds: value.toInt())));
+                //     },
+                //   ),
+                // ),
+                Text('${formatDuration(state.position)}/${formatDuration(state.duration)}')
               ],
-
             ),
           ),
           GestureDetector(
             onTap: () async {
-              setState(() {
-                isPlaying = !isPlaying;
-              });
-              if (isPlaying = player.state == PlayerState.playing) {
-                player.pause();
-              } else {
-                await player.play(AssetSource(selectedUri));
-              }
+              context.read<ExploreTabBloc>().add(ClickPlayPauseMusicEvent());
             },
             child: Container(
               height: MediaQuery.of(context).size.width*0.15,
@@ -348,7 +326,7 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
               child: Center(
                 child: Icon(
                   // state.isCombo ? Icons.pause : Icons.play_arrow,
-                  isPlaying ? Icons.play_arrow : Icons.pause,
+                  state.isPlaying ? Icons.pause : Icons.play_arrow,
                   size: 40.sp, color: Colors.pink,),
               ),
             ),
@@ -358,7 +336,7 @@ class _LayoutScreenState extends State<LayoutScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget playnowscreen(BuildContext context, ContainerState state) {
+  Widget playnowscreen(BuildContext context, ExploreTabState state) {
     return SingleChildScrollView(
       child: SingleChildScrollView(
         child: Column(

@@ -19,23 +19,26 @@ class _ExplporeTabScreenState extends State<ExplporeTabScreen> {
     AudioList(uri: 'music/angelbaby.mp3'),
     AudioList(uri: 'music/test.mp3'),
   ];
-
   void onTapListItem(String uri) {
     widget.onTap(uri);
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        shrinkWrap: true,
-        itemCount: listmusic.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            onTap: () {
-              onTapListItem(listmusic[index].uri.toString());
+      body: BlocBuilder<ExploreTabBloc, ExploreTabState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            itemCount: listmusic.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                onTap: () {
+                  onTapListItem(listmusic[index].uri.toString());
+                  context.read<ExploreTabBloc>().add(OpenPlayNowScreenEvent());
+                },
+                title: Text('${listmusic[index].uri}'),
+              );
             },
-            title: Text('${listmusic[index].uri}'),
           );
         },
       ),
